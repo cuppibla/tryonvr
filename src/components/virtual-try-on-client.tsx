@@ -78,11 +78,13 @@ export default function VirtualTryOnClient() {
     }
 
     const video = webcamRef.current.video;
-    if (video.readyState < 2) { // Ensure video is ready
+
+    // A more reliable check to ensure the video has dimensions and is ready.
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
         animationFrameId.current = requestAnimationFrame(predictWebcam);
         return;
     }
-    
+
     if (video.currentTime !== lastVideoTimeRef.current) {
       setIsDetecting(true);
       lastVideoTimeRef.current = video.currentTime;
@@ -98,7 +100,7 @@ export default function VirtualTryOnClient() {
           try {
             const videoWidth = video.videoWidth || videoConstraints.width;
             const videoHeight = video.videoHeight || videoConstraints.height;
-            
+
             const aiInput: ImproveModelFitInput = {
               poseLandmarks: currentLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z, visibility: lm.visibility ?? 0 })),
               modelParameters: { ...modelParameters },
@@ -268,15 +270,15 @@ export default function VirtualTryOnClient() {
             />
             {uploadedModelName && <p className="text-xs text-muted-foreground text-center">Loaded: {uploadedModelName}</p>}
           </div>
-          
+
           <div className="flex items-center justify-center space-x-2">
             <Button onClick={toggleWebcam} disabled={isInitializing} className="w-1/2">
               {webcamEnabled ? <CameraOff className="mr-2 h-4 w-4" /> : <Camera className="mr-2 h-4 w-4" />}
               {webcamEnabled ? 'Disable Webcam' : 'Enable Webcam'}
             </Button>
-            <Button 
-              onClick={handleManualAdjust} 
-              disabled={!webcamEnabled || !uploadedModelUrl || !poseLandmarks || isAdjustingModel || isInitializing} 
+            <Button
+              onClick={handleManualAdjust}
+              disabled={!webcamEnabled || !uploadedModelUrl || !poseLandmarks || isAdjustingModel || isInitializing}
               variant="secondary"
               className="w-1/2"
             >
